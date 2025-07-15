@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScoutAI</title>
+  <style>
+    body {
+      width: 320px;
+      min-height: 400px;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+      color: white;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .content {
+      padding: 16px;
+    }
+    
+    .status {
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+    
+    .status.success {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+    
+    .status.error {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+    }
+    
+    .status.info {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+    
+    .button {
+      width: 100%;
+      padding: 12px;
+      background-color: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .button:hover {
+      background-color: #2563eb;
+    }
+    
+    .button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+    
+    .info {
+      font-size: 12px;
+      color: #6b7280;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1 style="margin: 0; font-size: 20px; font-weight: bold;">ScoutAI</h1>
+    <p style="margin: 4px 0 0 0; font-size: 12px; opacity: 0.9;">
+      Fantasy Football Draft Assistant
+    </p>
+  </div>
+  
+  <div class="content">
+    <div id="status" class="status info">
+      Checking status...
+    </div>
+    
+    <button id="toggleButton" class="button" disabled>
+      Toggle Sidebar
+    </button>
+    
+    <button id="refreshButton" class="button">
+      Refresh Recommendations
+    </button>
+    
+    <div class="info">
+      <p><strong>How to use:</strong></p>
+      <ul style="margin: 8px 0; padding-left: 16px;">
+        <li>Navigate to ESPN or Yahoo Fantasy draft page</li>
+        <li>Click the ScoutAI button to open the sidebar</li>
+        <li>Get intelligent draft recommendations</li>
+      </ul>
+      
+      <p style="margin-top: 16px; font-size: 11px;">
+        Make sure the backend server is running on localhost:8000
+      </p>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
