@@ -119,3 +119,6 @@ celerybeat.pid
 .mypy_cache/
 .dmypy.json
 dmypy.json 
+
+# Ignore large raw data file
+/data/raw/weekly_player_stats_offense.csv 
