@@ -6,6 +6,7 @@ import { draftDetector } from '../utils/draft-detector';
 import RosterSummary from './RosterSummary';
 import RecommendationCard from './RecommendationCard';
 import LoadingSpinner from './LoadingSpinner';
+import Modal from 'react-modal';
 
 interface SidebarProps {
   onClose: () => void;
@@ -17,6 +18,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const [draftState, setDraftState] = useState<DraftState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [newsArticles, setNewsArticles] = useState<any[]>([]);
+  const [newsPlayer, setNewsPlayer] = useState<string | null>(null);
+  const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+  const [isNewsLoading, setIsNewsLoading] = useState(false);
+  const [newsError, setNewsError] = useState<string | null>(null);
 
   const fetchRecommendations = async () => {
     setIsLoading(true);
@@ -47,6 +53,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
       setError(err instanceof Error ? err.message : 'Failed to fetch recommendations');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchPlayerNews = async (playerName: string) => {
+    setIsNewsLoading(true);
+    setNewsError(null);
+    setNewsArticles([]);
+    setNewsPlayer(playerName);
+    setIsNewsModalOpen(true);
+    try {
+      const res = await fetch(`http://localhost:8000/api/v1/player-news?player=${encodeURIComponent(playerName)}`);
+      const data = await res.json();
+      setNewsArticles(data.articles || []);
+    } catch (err) {
+      setNewsError('Failed to fetch news articles');
+    } finally {
+      setIsNewsLoading(false);
     }
   };
 
@@ -140,13 +163,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
                 Top Recommendations
               </h2>
             </div>
-            
             {recommendations.map((recommendation, index) => (
-              <RecommendationCard
-                key={`${recommendation.player.name}-${index}`}
-                recommendation={recommendation}
-                rank={index + 1}
-              />
+              <div key={`${recommendation.player.name}-${index}`}> 
+                <RecommendationCard
+                  recommendation={recommendation}
+                  rank={index + 1}
+                />
+                <button
+                  className="mt-2 text-blue-600 hover:underline text-sm"
+                  onClick={() => fetchPlayerNews(recommendation.player.name)}
+                >
+                  Show News
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -158,6 +187,43 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
           </div>
         )}
       </div>
+
+      {/* News Modal */}
+      <Modal
+        isOpen={isNewsModalOpen}
+        onRequestClose={() => setIsNewsModalOpen(false)}
+        contentLabel="Player News"
+        ariaHideApp={false}
+        className="fixed inset-0 flex items-center justify-center z-50"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-40 z-40"
+      >
+        <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold">Recent News for {newsPlayer}</h3>
+            <button onClick={() => setIsNewsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          {isNewsLoading && <LoadingSpinner />}
+          {newsError && <div className="text-red-600 text-sm mb-2">{newsError}</div>}
+          {!isNewsLoading && !newsError && newsArticles.length === 0 && (
+            <div className="text-gray-500 text-sm">No recent news found.</div>
+          )}
+          <ul className="space-y-3 max-h-80 overflow-y-auto">
+            {newsArticles.map((article, idx) => (
+              <li key={idx} className="border-b pb-2">
+                <a href={article.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-blue-700 hover:underline">
+                  {article.title}
+                </a>
+                <div className="text-xs text-gray-500">
+                  {article.source} &middot; {new Date(article.publishedAt).toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-700 mt-1">{article.snippet}</div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Modal>
     </div>
   );
 };

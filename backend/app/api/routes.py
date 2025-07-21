@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
 from app.models.schemas import DraftRequest, DraftResponse
 from app.models.ml_model import ScoutAIModel
 import logging
+import os
+import requests
 
 router = APIRouter()
 
@@ -94,7 +96,6 @@ async def train_model_sync(num_samples: int = 20000):
 async def delete_model():
     """Delete the current trained model"""
     try:
-        import os
         if os.path.exists(ml_model.model_path):
             os.remove(ml_model.model_path)
             ml_model.is_model_loaded = False
@@ -117,3 +118,34 @@ async def get_model_info():
             status_code=500,
             detail=f"Error getting model info: {str(e)}"
         ) 
+
+@router.get("/player-news")
+async def get_player_news(player: str = Query(..., description="Player name")):
+    """
+    Fetch recent news articles about a specific player using Bing News Search API.
+    """
+    api_key = os.environ.get("BING_NEWS_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Bing News API key not set in environment variables.")
+    endpoint = "https://api.bing.microsoft.com/v7.0/news/search"
+    headers = {"Ocp-Apim-Subscription-Key": api_key}
+    params = {
+        "q": player,
+        "mkt": "en-US",
+        "count": 5,
+        "sortBy": "Date"
+    }
+    response = requests.get(endpoint, headers=headers, params=params)
+    if response.status_code != 200:
+        raise HTTPException(status_code=500, detail="Failed to fetch news articles.")
+    data = response.json()
+    articles = []
+    for item in data.get("value", []):
+        articles.append({
+            "title": item.get("name"),
+            "url": item.get("url"),
+            "source": item.get("provider", [{}])[0].get("name", "Unknown"),
+            "publishedAt": item.get("datePublished"),
+            "snippet": item.get("description")
+        })
+    return {"articles": articles} 
