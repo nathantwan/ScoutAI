@@ -391,4 +391,43 @@ class ScoutAIModel:
             'loaded': self.is_model_loaded,
             'features': len(self.feature_columns),
             'model_path': self.model_path
-        } 
+        }
+    
+    def get_feature_importance(self) -> Dict[str, float]:
+        """Get feature importance scores from the trained model"""
+        if not self.is_model_loaded or self.model is None:
+            raise RuntimeError("Model not loaded. Please train the model first.")
+        
+        try:
+            # Get feature importance from XGBoost model
+            importance_scores = self.model.feature_importances_
+            
+            # Create dictionary mapping feature names to importance scores
+            feature_importance = dict(zip(self.feature_columns, importance_scores))
+            
+            # Sort by importance (descending)
+            sorted_importance = dict(sorted(
+                feature_importance.items(), 
+                key=lambda x: x[1], 
+                reverse=True
+            ))
+            
+            return sorted_importance
+        except Exception as e:
+            logger.error(f"Error getting feature importance: {e}")
+            return {}
+    
+    def get_top_features(self, top_n: int = 5) -> List[Dict[str, Any]]:
+        """Get top N most important features with their scores"""
+        feature_importance = self.get_feature_importance()
+        
+        top_features = []
+        for i, (feature, importance) in enumerate(list(feature_importance.items())[:top_n]):
+            top_features.append({
+                'rank': i + 1,
+                'feature': feature,
+                'importance': float(importance),
+                'percentage': float(importance * 100)
+            })
+        
+        return top_features 
